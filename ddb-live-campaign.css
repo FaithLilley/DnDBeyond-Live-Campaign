@@ -10,8 +10,11 @@
 /*! ADD CSS FOR NEW ELEMENTS ON CHARACTER CARDS */
 
 .ddb-lc-character-expanded {
-    display: block;
-    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1 !important;
+    margin-top:10px;
 }
 .ddb-lc-character-stats {
     display: flex;
@@ -28,7 +31,6 @@
     position: relative;
     width: 50px !important;
     margin-left: 6px;
-    background-color: yellow;
 }
 .ddb-lc-character-stats-armorclass span {
     display: block;
@@ -38,7 +40,7 @@
     line-height: 50px;
     color: #000000;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 24px;
 }
 .ddb-lc-character-stats-armorclass svg {
     width: 100%;
@@ -52,8 +54,33 @@
 .ddb-lc-character-stats-hitpoints {
     display: block;
     position: relative;
-    width: 50px;
-    background-color: lime;
+    width: 50px !important;
+}
+.ddb-lc-character-stats-hitpoints span {
+    display: block;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+.ddb-lc-character-stats-hitpoints-cur {
+    line-height: 22px;
+    padding-top: 10px;
+    color: #000000;
+    font-weight: bold;
+    font-size: 20px;
+}
+.ddb-lc-character-stats-hitpoints-max {
+    line-height: 16px;
+    color: #808080;
+    font-weight: bold;
+    font-size: 14px;
+}
+.ddb-lc-character-stats-hitpoints svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
 }
 
 /* -- Initiative -- */
@@ -61,7 +88,50 @@
     display: block;
     position: relative;
     width: 50px;
-    background-color: cyan;
+}
+.ddb-lc-character-stats-initiative span {
+    z-index: 2;
+}
+.ddb-lc-character-stats-initiative-label {
+    position: relative;
+    text-align: center;
+    display: block;
+    font-size: 13px;
+    line-height: 17px;
+    color: #d2d2d2;
+}
+.ddb-lc-character-stats-initiative-container {
+    display: flex;
+    justify-content:center;
+}
+.ddb-lc-character-stats-initiative-container > div {
+    position: relative;
+}
+.ddb-lc-character-stats-initiative-value {
+    display: inline-block;
+    position: relative;
+    text-align: center;
+    justify-content: center;
+    line-height: 38px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #000000;
+}
+.ddb-lc-character-stats-initiative-sign {
+    position:absolute;
+    left:0;
+    line-height: 36px;
+    margin-left: -8px;
+    color: #808080;
+    font-size: 16px;
+    font-weight: bold;
+}
+.ddb-lc-character-stats-initiative svg {
+    width: 100%;
+    height: 39px;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
 }
 
 /* -- Passives -- */
@@ -69,5 +139,72 @@
     display: block;
     position: relative;
     flex: 1;
-    background-color: magenta;
+}
+.ddb-lc-character-stats-passives > div {
+    display: block;
+    position: relative;
+}
+.ddb-lc-character-stats-passives-value {
+    font-weight: bold;
+    font-size: 13px;
+    color: #ffffff;
+    padding: 0px 4px;
+}
+.ddb-lc-character-stats-passives-label {
+    font-family: "Roboto Condensed",Roboto,Helvetica,sans-serif;
+    font-size: 13px;
+    color: #d2d2d2;
+}
+
+/* -- Attribute Scores -- */
+.ddb-lc-character-attributes {
+    display: flex;
+    position: relative;
+    justify-content: space-between;
+}
+.ddb-lc-character-attributes > div {
+    display: block;
+    position: relative;
+    width: 50px;
+    height: 55px;
+}
+.ddb-lc-character-attributes > div > svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
+.ddb-lc-character-attributes > div > div {
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+.ddb-lc-character-attributes-label {
+    display: block;
+    position: relative;
+    text-align: center;
+    line-height: 13px;
+    padding-top: 2px;
+    font-size: 13px;
+    color: #808080;
+}
+.ddb-lc-character-attributes-value {
+    display: block;
+    position: relative;
+    text-align: center;
+    font-weight: bold;
+    line-height: 20px;
+    font-size: 22px;
+    color: #000000;
+}
+.ddb-lc-character-attributes-modifier {
+    display: block;
+    position: relative;
+    text-align: center;
+    line-height: 14px;
+    padding-top: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #000000;
 }
