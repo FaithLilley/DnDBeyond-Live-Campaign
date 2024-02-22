@@ -31,7 +31,9 @@ Install one of these extensions for your browser. If you're not sure, I recommen
 
 Ensure you are running a browser extension that takes UserScripts (see Prerequisites above).
 
-[Click on this link](https://github.com/FaithLilley/DnDBeyond-Live-Campaign/raw/master/ddb-live-campaign.user.js) to install this user script to your browser extension, then follow the instructions from your browser extension.
+Click on the Install Script button below to install this user script to your browser extension, then follow the instructions from your browser extension.
+
+[![Live Update Campaign Page Splash](./images/install-button.png)](https://github.com/FaithLilley/DnDBeyond-Live-Campaign/raw/master/ddb-live-campaign.user.js) 
 
 ## 3. How to Use
 
@@ -62,3 +64,5 @@ Project forked from [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBey
 ## 6. License
 
 This project uses the [MIT license](LICENSE.md).
+
+[![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)](https://forthebadge.com)
