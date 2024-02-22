@@ -2,7 +2,7 @@
 // @name			D&D Beyond Live-Update Campaign
 // @namespace		https://github.com/FaithLilley/DnDBeyond-Live-Campaign/
 // @copyright		Copyright (c) 2024 Faith Elisabeth Lilley (aka Stormknight)
-// @version			0.1
+// @version			1.0
 // @description		Provides live character data on the D&D Beyond campaign page
 // @author			Faith Elisabeth Lilley (aka Stormknight)
 // @match			https://www.dndbeyond.com/campaigns/*
@@ -11,11 +11,9 @@
 // @supportURL		https://github.com/FaithLilley/DnDBeyond-Live-Campaign/
 // @require			https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
 // @require         https://media.dndbeyond.com/character-tools/vendors~characterTools.bundle.dec3c041829e401e5940.min.js
-// @grant			GM_setValue
-// @grant			GM_getValue
 // @license			MIT; https://github.com/FaithLilley/DnDBeyond-Live-Campaign/blob/master/LICENSE.md
 // ==/UserScript==
-console.log("Initialising D&D Beyond Live Campaign.");
+console.log("Initialising D&D Beyond Live Campaign script.");
 
 /**
 * DEFINE GLOBALS
@@ -35,11 +33,15 @@ const gameCollectionUrl = {
   prefix: "https://character-service.dndbeyond.com/character/v4/game-data/",
   postfix: "/collection",
 };
+const optionalRules = {
+    "optionalOrigins": {category:"racial-trait", id:"racialTraitId" },
+    "optionalClassFeatures": {category:"class-feature", id:"classFeatureId" },
+};
 
-const debugMode = true;
+const debugMode = false;
 
 const autoUpdateDefault = true;
-const updateDurationDefault = 60;
+const updateDurationDefault = 30;
 
 var $ = window.jQuery;
 var initalModules = {},
@@ -51,7 +53,7 @@ var initalModules = {},
 
 /**
 * charactersData is an object array of all characters in the campaign
-* * charactersData[characterID].property
+* * charactersData[charID].property
 * node:     the top DOM element for each character card
 * url:      JSON query for character data in the DDB charater service
 * data:     Data for the character
@@ -65,7 +67,7 @@ var initalModules = {
     2080: function (module, __webpack_exports__, __webpack_require__) {
         "use strict";
         __webpack_require__.r(__webpack_exports__);
-        console.log("Module 2080: start");
+        writeDebugData("Module 2080: start");
         // Unused modules:
         // var react = __webpack_require__(0);
         // var react_default = __webpack_require__.n(react);
@@ -87,18 +89,18 @@ var initalModules = {
         for (key in character_rules_engine_lib_es){
             if (typeof character_rules_engine_lib_es[key].getAbilities === 'function'){
                 crk = key;
-                console.log("crk found: " + key);
+                writeDebugData("crk found: " + key);
             }
             if (typeof character_rules_engine_lib_es[key].getSenseTypeModifierKey === 'function'){
                 ktl = key;
-                console.log("ktl found: " + key);
+                writeDebugData("ktl found: " + key);
             }
         }
 
         for (key in Core){
             if (typeof Core[key].WALK !== 'undefined' && typeof Core[key].SWIM !== 'undefined' && typeof Core[key].CLIMB !== 'undefined' && typeof Core[key].FLY !== 'undefined' && typeof Core[key].BURROW !== 'undefined'){
                 cmov = key;
-                console.log("cmov found: " + key);
+                writeDebugData("cmov found: " + key);
             }
         }
 
@@ -117,7 +119,7 @@ var initalModules = {
                 Any return that uses the function character_rules_engine_lib_es or character_rules_engine_web_adapter_es can be added to this for more return values as this list is not comprehensive.
                 Anything with selectors_appEnv is unnessisary,as it just returns values in state.appEnv.
             */
-            console.log("Module 2080: Processing State Info Into Data");
+            writeDebugData("Module 2080: Processing State Info Into Data");
 
             var ruleData = charf1.getRuleData(state);
 
@@ -259,15 +261,13 @@ var initalModules = {
             getCharData : getCharData,
             getAuthHeaders : getAuthHeaders,
         }
-        console.log("Module 2080: end");
+        writeDebugData("Module 2080: end");
     }
 };
 
 
 /**
-* MAIN FUNCTION
 * ! Primary function invoked by Tampermonkey
-* TODO: Add the data loading
 */
 (function () {
     writeDebugData("Main function executing");
@@ -276,7 +276,16 @@ var initalModules = {
     campaignID = detectCampaignID();
     svgImageData = defineSVGimageData();
     locateCharacters();
-    updateAllCharacters(); // Queries data, writes it to the page, then starts a refresh timer
+
+    window.moduleExport.getAuthHeaders()().then((function (headers) {
+        authHeaders = headers;
+        writeDebugData("authHeaders: ", headers);
+        retrieveRules().then(() =>{
+            updateAllCharacters(); // Queries data, writes it to the page, then starts a refresh timer
+        }).catch((error) => {
+            console.error(error);
+        });
+    }));
 })();
 
 /**
@@ -290,18 +299,41 @@ function locateCharacters() {
     const linkUrlTarget = ".ddb-campaigns-detail-body-listing-active .ddb-campaigns-character-card-footer-links-item-view";
     writeDebugData("Locating active characters on the campaign page.");
     $(linkUrlTarget).each(function (index, value) {
-        let characterID = parseInt(value.href.match(charIDRegex));
-        writeDebugData("Character ID located: " + characterID);
-        if (characterID != 0) {
+        let charID = parseInt(value.href.match(charIDRegex));
+        writeDebugData("Character ID located: " + charID);
+        if (charID != 0) {
             let node = $(value).parents('li');
-            charactersData[characterID] = {
+            charactersData[charID] = {
                 node: node,
-                url: charJSONurlBase + characterID,
-                data: {},
+                url: charJSONurlBase + charID,
+                state: {
+                    appEnv: {
+                        authEndpoint: "https://auth-service.dndbeyond.com/v1/cobalt-token", characterEndpoint: "", characterId: charID, characterServiceBaseUrl: null, diceEnabled: true, diceFeatureConfiguration: {
+                            apiEndpoint: "https://dice-service.dndbeyond.com", assetBaseLocation: "https://www.dndbeyond.com/dice", enabled: true, menu: true, notification: false, trackingId: ""
+                        }, dimensions: { sheet: { height: 0, width: 1200 }, styleSizeType: 4, window: { height: 571, width: 1920 } }, isMobile: false, isReadonly: false, redirect: undefined, username: "example"
+                    },
+                    appInfo: { error: null },
+                    character: {},
+                    characterEnv: { context: "SHEET", isReadonly: false, loadingStatus: "LOADED" },
+                    confirmModal: { modals: [] },
+                    modal: { open: {} },
+                    ruleData: {},
+                    serviceData: { classAlwaysKnownSpells: {}, classAlwaysPreparedSpells: {}, definitionPool: {}, infusionsMappings: [], knownInfusionsMappings: [], ruleDataPool: {}, vehicleComponentMappings: [], vehicleMappings: [] },
+                    sheet: { initError: null, initFailed: false },
+                    sidebar: { activePaneId: null, alignment: "right", isLocked: false, isVisible: false, panes: [], placement: "overlay", width: 340 },
+                    syncTransaction: { active: false, initiator: null },
+                    toastMessage: {}
+                },
+                data: {}
             }
-            injectNewCharacterCardElements(characterID);
-            updateCharacterClasses(characterID);
-            writeDebugData(charactersData[characterID].url);
+            for (let ruleID in optionalRules){
+                charactersData[charID].state.serviceData.definitionPool[optionalRules[ruleID].category] = {
+                    accessTypeLookup:{},
+                    definitionLookup:{},
+                };
+            }
+            injectNewCharacterCardElements(charID);
+            writeDebugData(charactersData[charID].url);
         } else {
             console.warn("Warning! Character with null character ID was found!");
         }
@@ -310,10 +342,10 @@ function locateCharacters() {
 
 
 /**
-* FUNCTIONS FOR UPDATING THE PAGE STRUCTURE
+* UPDATES THE PAGE STRUCTURE FOR A SPECIFIC CHARACTER CARD
 */
-function injectNewCharacterCardElements(characterID) {
-    let targetNode = charactersData[characterID].node.find('.ddb-campaigns-character-card-header');
+function injectNewCharacterCardElements(charID) {
+    let targetNode = charactersData[charID].node.find('.ddb-campaigns-character-card-header');
     targetNode.append(defineHTMLStructure());
 }
 
@@ -321,19 +353,57 @@ function injectNewCharacterCardElements(characterID) {
 * FUNCTIONS FOR UPDATING THE PAGE DATA
 */
 function updateAllCharacters() {
-    writeDebugData("Updating all Characters.");    
+    console.log("Live-Update Campaign:: Updating all Characters.");
+    let timeStart = performance.now();
     queryAllCharacterData(); // Populates charactersData
-    // TODO: Functions to write this data to the page.
     startRefreshTimer(updateDurationDefault);
-    writeDebugData("Updated all Character data.");
+    let timeExecution = performance.now() - timeStart;
+    console.log("Live-Update Campaign:: Updated all Character data in " + timeExecution + " ms");
 }
 
-// Updates the Character Class based on data
-function updateCharacterClasses(characterID) {
-    let targetNode = charactersData[characterID].node.find('.ddb-campaigns-character-card-header-upper-character-info-secondary').first();
-    targetNode.html('Variant Human - Barbarian 4 / Sorceror 3');
-    // TODO: Plug in the actual data
-    // span = $('#ddb-lc-armorclass');
+/**
+* Takes the newly queried data, for the specified character, and publishes it to the page
+* * Is passed the character object
+*/
+function updateCharacterOnPage(character) {
+    updateCharacterRaceandClass(character.node, character.data);
+    updateCharacterMainStats(character.node, character.data);
+}
+
+function updateCharacterRaceandClass(node,charData) {
+    let raceString = "";
+    if (charData.gender != null) {
+        raceString += charData.gender + " ";
+    };
+    raceString += charData.race.fullName;
+    node.find('.ddb-campaigns-character-card-header-upper-character-info-secondary').first().html(raceString);
+    let classString = "";
+    charData.classes.forEach(function(item, index){
+        if (index > 0) {
+            classString += " / ";
+        }
+        classString += item.definition.name + " " + item.level;
+    });
+    node.find('.ddb-campaigns-character-card-header-upper-character-info-secondary').eq(1).html(classString);
+}
+
+function updateCharacterMainStats(node,charData) {
+    node.find('.ddb-lc-armorclass').html(charData.armorClass);
+    node.find('.ddb-lc-character-stats-hitpoints-cur').html(charData.hitPointInfo.remainingHp);
+    node.find('.ddb-lc-character-stats-hitpoints-max').html(charData.hitPointInfo.totalHp);
+    node.find('.ddb-lc-character-stats-initiative-value').html(Math.abs(charData.initiative));
+    node.find('.ddb-lc-character-stats-initiative-sign').html(getSign(charData.initiative));
+    // Passives
+    node.find('.ddb-lc-passive-perception').html(charData.passivePerception);
+    node.find('.ddb-lc-passive-investigation').html(charData.passiveInvestigation);
+    node.find('.ddb-lc-passive-insight').html(charData.passiveInsight);
+    // Ability Scores
+    charData.abilities.forEach(function(item, index){
+        let valTarget = '.ddb-lc-value-' + item.name;
+        let modTarget = '.ddb-lc-modifier-' + item.name;
+        node.find(valTarget).html(item.totalScore);
+        node.find(modTarget).html(signedInteger(item.modifier));
+    });
 }
 
 /**
@@ -358,9 +428,9 @@ function queryAllCharacterData() {
     //console.log(charactersData);
     Promise.all(promises)
         .then(() =>{
-        updateCampaignData();   // TODO; Remove this but preserve functionality
+        writeDebugData("All character data queried.");
     }).catch((error) => {
-        console.log(error);
+        console.error(error);
     });
 }
 
@@ -368,27 +438,25 @@ function updateCharacterData(url) {
     return new Promise(function (resolve, reject) {
         writeDebugData("Retrieving Character data.");
         getJSONfromURLs([url]).then((js) => {
-            //window.jstest = js;
             js.forEach(function(charJSON, index){
                 if(isSuccessfulJSON(charJSON, index)){
                     let charId = charJSON.data.id;
                     writeDebugData("Processing Character: " + charId);
                     charactersData[charId].state.character = charJSON.data;
-                    let promises = retriveCharacterRules(charId)
+                    let promises = retrieveCharacterRules(charId)
                     Promise.all(promises).then(()=>{
                         var charData = window.moduleExport.getCharData(charactersData[charId].state);
                         charactersData[charId].data = charData;
-                        updateElementData(charactersData[charId]);
-                        console.log("Retrived Char Data for char " + charId + " aka " + charactersData[charId].data.name);
-                        console.log(charactersData[charId]);
+                        updateCharacterOnPage(charactersData[charId]);
+                        writeDebugData("Retrieved Char Data for char " + charId + " aka " + charactersData[charId].data.name);
                         resolve();
                     });
                 } else {
-                    console.log("Char URL " + url + " was skipped");
+                    writeDebugData("Char URL " + url + " was skipped");
                 }
             });
         }).catch((error) => {
-            console.log(error);
+            console.error(error);
             reject();
         });
     });
@@ -405,6 +473,78 @@ function startRefreshTimer(refreshSeconds) {
     }, refreshTimeMS);
 }
 
+function retrieveRules(charIDs) {
+    return new Promise(function (resolve, reject) {
+        writeDebugData("Retrieving Rules Data");
+        getJSONfromURLs(rulesUrls).then((js) => {
+            writeDebugData("Rules Data Processing Start");
+            js.forEach(function(rule, index){
+                isSuccessfulJSON(rule, index);
+            });
+            rulesData = {
+                ruleset : js[0].data,
+                vehiclesRuleset : js[1].data
+            }
+            for(let id in charactersData){
+                charactersData[id].state.ruleData = rulesData.ruleset;
+                charactersData[id].state.serviceData.ruleDataPool = rulesData.vehiclesRuleset;
+            }
+            console.debug("Rules Data:");
+            console.debug(rulesData);
+            resolve();
+        }).catch((error) => {
+            reject(error);
+        });
+    });
+}
+
+function getRules(index){
+    return rulesData[index];
+}
+
+function retrieveCharacterRules(charId) {
+    let promises = [];
+    writeDebugData("Looking for optional rules for " + charactersData[charId].data.name);
+    for(let ruleID in optionalRules){
+        if(ruleID in charactersData[charId].state.character && charactersData[charId].state.character[ruleID].length > 0 ){
+            writeDebugData("Optional ruleset for " + ruleID + " found.");
+            promises.push(retrieveCharacterRule(charId, ruleID));
+        }
+    }
+    return promises;
+}
+
+function retrieveCharacterRule(charId, ruleID) {
+    let url = gameCollectionUrl.prefix + optionalRules[ruleID].category + gameCollectionUrl.postfix;
+
+    let ruleIds = []
+    for(let item of charactersData[charId].state.character[ruleID]){
+        ruleIds.push(item[optionalRules[ruleID].id]);
+    }
+
+    let body = {"campaignId":null,"sharingSetting":2,"ids":ruleIds};
+    return new Promise(function (resolve, reject) {
+        getJSONfromURLs([url], body).then((js) => {
+            js.forEach(function(charJSON, index){
+                writeDebugData("Retrieved " + ruleID + " data, processing.");
+                writeDebugData(charJSON);
+                if(charJSON.success && charJSON.data.definitionData != undefined){
+                    for(let data of charJSON.data.definitionData){
+                        charactersData[charId].state.serviceData.definitionPool[optionalRules[ruleID].category].definitionLookup[data.id] = data;
+                        charactersData[charId].state.serviceData.definitionPool[optionalRules[ruleID].category].accessTypeLookup[data.id] = 1;
+                    }
+                }
+                writeDebugData(ruleID + " finished processing.");
+            });
+            resolve();
+
+        }).catch((error) => {
+            console.error(error);
+            reject();
+        });
+    });
+}
+
 /**
 * D&D BEYOND MODULE LOADER
 */
@@ -414,7 +554,7 @@ function loadModules(modules) {
         This basically loads in the modules in https://media.dndbeyond.com/character-tools/vendors~characterTools.bundle.f8b53c07d1796f1d29cb.min.js and similar module based scripts
         these are stored in window.jsonpDDBCT and can be loaded by this script and interacted with by active modules
     */
-    console.log("Loading modules");
+    writeDebugData("Loading modules");
     function webpackJsonpCallback(data) {
         /*
             This allows additonal modules to be added run, the input format needs to be at least a two dimentional array,
@@ -544,7 +684,7 @@ function loadModules(modules) {
     var parentJsonpFunction = oldJsonpFunction;
     deferredModules.push([2080, 2]); //This sets module 2080 as an active module and is run after the other modules are loaded
     checkDeferredModules();
-    console.log("Finished loading modules");
+    writeDebugData("Finished loading modules");
 }
 
 /**
@@ -553,16 +693,114 @@ function loadModules(modules) {
 
 function writeDebugData(data) {
   if (debugMode === true) {
-    console.log("DDBLC:: " + data);
+    console.log("::D&D Beyond Live-Update Campaign::", data);
   }
 }
 
 function getSign(input){
-    let positiveSign = "+",
-        negativeSign = "-";
     let number = parseIntSafe(input);
-    return number >= 0 ? positiveSign : negativeSign
+    return number >= 0 ? "+" : "-"
 }
+
+function signedInteger(input) {
+    let number = parseIntSafe(input);
+    if (number >= 0) {
+        return "+" + number.toString();
+    } else {
+        return number.toString();
+    }
+}
+
+function isSuccessfulJSON(js, name){
+    let success = true;
+    if(js.length < 1 || js.success == undefined){
+        console.warn("JSON " + name + " is malformed");
+        return false;
+    } else if (js.success == false){
+        console.warn("JSON " + name + "'s retrieval was unsuccessful");
+        return false;
+    } else if (js.success != true) {
+        console.warn("JSON " + name + "'s retrieval was unsuccessful and is malformed");
+        return false;
+    } else if (js.data == undefined || js.data.length < 1) {
+        console.warn("JSON " + name + "'s data is malformed");
+        return false;
+    }
+    return true;
+}
+function getJSONfromURLs(urls, body, headers, cookies) {
+    return new Promise(function (resolve, reject) {
+        writeDebugData("Fetching: ", urls);
+        var proms = urls.map(d => fetchRequest(d, body, cookies));
+        Promise.all(proms)
+            .then(ps => Promise.all(ps.map(p => p.json()))) // p.json() also returns a promise
+            .then(jsons => {
+            writeDebugData("JSON Data Retrieved");
+            resolve(jsons);
+        })
+            .catch((error) => {
+            reject(error);
+        });
+    });
+}
+function fetchRequest(url, body, headers, cookies) {
+    let options = {};
+    let myHeaders = new Headers({
+        'X-Custom-Header': 'hello world',
+    });
+    for(let id in authHeaders){
+        myHeaders.append(id, authHeaders[id]);
+    }
+    if(body != undefined && body != ''){
+        options.method = 'POST'
+        myHeaders.append('Accept','application/json');
+        myHeaders.append('Content-Type','application/json');
+        options.body = JSON.stringify(body);
+    }
+    if(cookies != undefined && cookies != ''){
+        options.cookies = cookies;
+    }
+    options.credentials = 'include';
+    options.headers = myHeaders;
+    writeDebugData(options);
+    return fetch(url, options);
+}
+
+function roundDown(input){
+    let number = parseInt(input);
+    if (isNaN(number)) {
+        return NaN;
+    }
+    return Math.floor(input);
+}
+
+function divide(numeratorInput, denominatorInput){
+    let numerator = parseInt(numeratorInput);
+    let denominator = parseInt(denominatorInput);
+    if (isNaN(numerator) || isNaN(denominator)) {
+        return NaN;
+    }
+    return numerator/denominator;
+}
+
+function distanceUnit(input){
+    let number = parseIntSafe(input);
+    let unit = 'ft.';
+    if (number && number % FEET_IN_MILES === 0) {
+        number = number / FEET_IN_MILES;
+        unit = 'mile' + (Math.abs(number) === 1 ? '' : 's');
+    }
+    return unit;
+}
+
+function parseIntSafe(input){
+    let number = parseInt(input);
+    if (isNaN(number)) {
+        number = 0;
+    }
+    return number;
+}
+
 
 /**
 * DEFINE CSS WITHOUT USING A SEPERATE CSS FILE
@@ -719,10 +957,12 @@ function loadStylesheet() {
     position: relative;
 }
 .ddb-lc-character-stats-passives-value {
+    display: inline-block;
+    width: 24px;
+    text-align: center;
     font-weight: bold;
     font-size: 13px;
     color: #ffffff;
-    padding: 0px 4px;
 }
 .ddb-lc-character-stats-passives-label {
     font-family: "Roboto Condensed",Roboto,Helvetica,sans-serif;
@@ -833,48 +1073,48 @@ function defineHTMLStructure() {
                         ` + svgImageData.attributeBox + `
                         <div>
                             <span class="ddb-lc-character-attributes-label">STR</span>
-                            <span class="ddb-lc-character-attributes-value ddb-lc-str-value">10</span>
-                            <span class="ddb-lc-character-attributes-modifier ddb-lc-str-modifier">+0</span>
+                            <span class="ddb-lc-character-attributes-value ddb-lc-value-str">10</span>
+                            <span class="ddb-lc-character-attributes-modifier ddb-lc-modifier-str">+0</span>
                         </div>
                     </div>
                     <div>
                         ` + svgImageData.attributeBox + `
                         <div>
                             <span class="ddb-lc-character-attributes-label">DEX</span>
-                            <span class="ddb-lc-character-attributes-value ddb-lc-dex-value">10</span>
-                            <span class="ddb-lc-character-attributes-modifier ddb-lc-dex-modifier">+0</span>
+                            <span class="ddb-lc-character-attributes-value ddb-lc-value-dex">10</span>
+                            <span class="ddb-lc-character-attributes-modifier ddb-lc-modifier-dex">+0</span>
                         </div>
                     </div>
                     <div>
                         ` + svgImageData.attributeBox + `
                         <div>
                             <span class="ddb-lc-character-attributes-label">CON</span>
-                            <span class="ddb-lc-character-attributes-value ddb-lc-con-value">10</span>
-                            <span class="ddb-lc-character-attributes-modifier ddb-lc-con-modifier">+0</span>
+                            <span class="ddb-lc-character-attributes-value ddb-lc-value-con">10</span>
+                            <span class="ddb-lc-character-attributes-modifier ddb-lc-modifier-con">+0</span>
                         </div>
                     </div>
                     <div>
                         ` + svgImageData.attributeBox + `
                         <div>
                             <span class="ddb-lc-character-attributes-label">INT</span>
-                            <span class="ddb-lc-character-attributes-value ddb-lc-int-value">10</span>
-                            <span class="ddb-lc-character-attributes-modifier ddb-lc-int-modifier">+0</span>
+                            <span class="ddb-lc-character-attributes-value ddb-lc-value-int">10</span>
+                            <span class="ddb-lc-character-attributes-modifier ddb-lc-modifier-int">+0</span>
                         </div>
                     </div>
                     <div>
                         ` + svgImageData.attributeBox + `
                         <div>
                             <span class="ddb-lc-character-attributes-label">WIS</span>
-                            <span class="ddb-lc-character-attributes-value ddb-lc-wis-value">10</span>
-                            <span class="ddb-lc-character-attributes-modifier ddb-lc-wis-modifier">+0</span>
+                            <span class="ddb-lc-character-attributes-value ddb-lc-value-wis">10</span>
+                            <span class="ddb-lc-character-attributes-modifier ddb-lc-modifier-wis">+0</span>
                         </div>
                     </div>
                     <div>
                         ` + svgImageData.attributeBox + `
                         <div>
                             <span class="ddb-lc-character-attributes-label">CHA</span>
-                            <span class="ddb-lc-character-attributes-value ddb-lc-cha-value">10</span>
-                            <span class="ddb-lc-character-attributes-modifier ddb-lc-cha-modifier">+0</span>
+                            <span class="ddb-lc-character-attributes-value ddb-lc-value-cha">10</span>
+                            <span class="ddb-lc-character-attributes-modifier ddb-lc-modifier-cha">+0</span>
                         </div>
                     </div>
                 </div>
