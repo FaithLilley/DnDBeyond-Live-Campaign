@@ -64,5 +64,3 @@ Project forked from [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBey
 ## 6. License
 
 This project uses the [MIT license](LICENSE.md).
-
-[![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)](https://forthebadge.com)
