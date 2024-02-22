@@ -10,8 +10,9 @@
   - [1. Prerequisites](#1-prerequisites)
   - [2. How to Install and Set-up](#2-how-to-install-and-set-up)
   - [3. How to Use](#3-how-to-use)
-  - [4. Credits](#4-credits)
-  - [5. License](#5-license)
+  - [4. What does it look like?](#4-what-does-it-look-like)
+  - [5. Credits](#5-credits)
+  - [6. License](#6-license)
 
 ## 1. Prerequisites
 
@@ -28,7 +29,7 @@ Install one of these extensions for your browser. If you're not sure, I recommen
 
 ## 2. How to Install and Set-up
 
-**WARNING: CURRENTLY UNDER DEVELOPMENT - NOT FUNCTIONING - COME BACK LATER**
+Ensure you are running a browser extension that takes UserScripts (see Prerequisites above).
 
 [Click on this link](https://github.com/FaithLilley/DnDBeyond-Live-Campaign/raw/master/ddb-live-campaign.user.js) to install this user script to your browser extension, then follow the instructions from your browser extension.
 
@@ -46,12 +47,18 @@ You'll now see additional information displayed on the card of each character, s
 
 The data is automatically updated every 60 seconds.
 
-## 4. Credits
+## 4. What does it look like?
+
+This is how the character cards on the campaign page look with this script running.
+
+![Live Update Campaign Page Splash](./images/example-campaign.jpg)
+
+## 5. Credits
 
 Author: Faith Elisabeth Lilley (aka Stormknight)
 
 Project forked from [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBeyond-DM-Screen) by [TeaWithLucas](https://github.com/TeaWithLucas) - huge thanks for figuring out the jQuery code.
 
-## 5. License
+## 6. License
 
 This project uses the [MIT license](LICENSE.md).
