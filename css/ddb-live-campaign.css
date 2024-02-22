@@ -145,10 +145,12 @@
     position: relative;
 }
 .ddb-lc-character-stats-passives-value {
+    display: inline-block;
+    width: 24px;
+    text-align: center;
     font-weight: bold;
     font-size: 13px;
     color: #ffffff;
-    padding: 0px 4px;
 }
 .ddb-lc-character-stats-passives-label {
     font-family: "Roboto Condensed",Roboto,Helvetica,sans-serif;
