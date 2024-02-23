@@ -59,7 +59,7 @@ This is how the character cards on the campaign page look with this script runni
 
 Author: Faith Elisabeth Lilley (aka Stormknight)
 
-Project forked from [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBeyond-DM-Screen) by [TeaWithLucas](https://github.com/TeaWithLucas) - huge thanks for figuring out the jQuery code.
+Project forked from [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBeyond-DM-Screen) by [TeaWithLucas](https://github.com/TeaWithLucas) - huge thanks for figuring out the DDB API code.
 
 ## 6. License
 
