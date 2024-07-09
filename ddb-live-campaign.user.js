@@ -2,7 +2,7 @@
 // @name			D&D Beyond Live-Update Campaign
 // @namespace		https://github.com/FaithLilley/DnDBeyond-Live-Campaign/
 // @copyright		Copyright (c) 2024 Faith Elisabeth Lilley (aka Stormknight)
-// @version			1.0
+// @version			1.1
 // @description		Provides live character data on the D&D Beyond campaign page
 // @author			Faith Elisabeth Lilley (aka Stormknight)
 // @match			https://www.dndbeyond.com/campaigns/*
@@ -24,13 +24,13 @@ console.log("Initialising D&D Beyond Live Campaign script.");
 
 // jQuery set-up
 const rulesUrls = [
-  "https://character-service.dndbeyond.com/character/v4/rule-data",
+  "https://character-service.dndbeyond.com/character/v5/rule-data",
   "https://gamedata-service.dndbeyond.com/vehicles/v3/rule-data",
 ];
 const charJSONurlBase =
-  "https://character-service.dndbeyond.com/character/v4/character/";
+  "https://character-service.dndbeyond.com/character/v5/character/";
 const gameCollectionUrl = {
-  prefix: "https://character-service.dndbeyond.com/character/v4/game-data/",
+  prefix: "https://character-service.dndbeyond.com/character/v5/game-data/",
   postfix: "/collection",
 };
 const optionalRules = {
