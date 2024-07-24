@@ -13,6 +13,9 @@
   - [4. What does it look like?](#4-what-does-it-look-like)
   - [5. Credits](#5-credits)
   - [6. License](#6-license)
+  - [7. Version Notes](#7-version-notes)
+    - [v 1.1.1](#v-111)
+    - [v 1.1](#v-11)
 
 ## 1. Prerequisites
 
@@ -57,10 +60,21 @@ This is how the character cards on the campaign page look with this script runni
 
 ## 5. Credits
 
-Author: Faith Elisabeth Lilley (aka Stormknight)
+Author: [Faith Elisabeth Lilley](https://github.com/FaithLilley) (aka Stormknight)
+Contributors: [@xander-hirst](https://github.com/xander-hirst)
 
 Project forked from [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBeyond-DM-Screen) by [TeaWithLucas](https://github.com/TeaWithLucas) - huge thanks for figuring out the DDB API code.
 
 ## 6. License
 
 This project uses the [MIT license](LICENSE.md).
+
+## 7. Version Notes
+
+### v 1.1.1
+
+Fix due to version change of the DDB API libraries. Thanks Xander!
+
+### v 1.1
+
+First full release.
