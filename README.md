@@ -64,7 +64,7 @@ Author: [Faith Elisabeth Lilley](https://github.com/FaithLilley) (aka Stormknigh
 
 Contributors: [@xander-hirst](https://github.com/xander-hirst)
 
-Project forked from [DNDBeyond-DM-Screen] [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBeyond-DM-Screen) by [TeaWithLucas](https://github.com/TeaWithLucas) - huge thanks for figuring out the DDB API code.
+Project forked from [DNDBeyond DM Screen][DNDBeyond-DM-Screen] [DNDBeyond-DM-Screen](https://github.com/TeaWithLucas/DNDBeyond-DM-Screen) by [TeaWithLucas](https://github.com/TeaWithLucas) - huge thanks for figuring out the DDB API code.
 
 ## 6. License
 
